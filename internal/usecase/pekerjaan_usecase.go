@@ -50,8 +50,8 @@ func (u *pekerjaanUsecase) CreatePekerjaan(ctx context.Context, req *domain.Crea
 	return u.pekerjaanRepo.Create(ctx, pekerjaan)
 }
 
-func (u *pekerjaanUsecase) GetAllPekerjaan(ctx context.Context) ([]domain.Pekerjaan, error) {
-	return u.pekerjaanRepo.FindAll(ctx)
+func (u *pekerjaanUsecase) GetAllPekerjaan(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Pekerjaan], error) {
+	return u.pekerjaanRepo.FindAll(ctx, params)
 }
 
 func (u *pekerjaanUsecase) GetPekerjaanByID(ctx context.Context, id int) (*domain.Pekerjaan, error) {

@@ -1,5 +1,4 @@
 // File: internal/usecase/alumni_usecase.go
-// (Struktur serupa untuk mahasiswa_usecase.go dan pekerjaan_usecase.go)
 package usecase
 
 import (
@@ -30,8 +29,8 @@ func (u *alumniUsecase) CreateAlumni(ctx context.Context, req *domain.CreateAlum
 	return u.alumniRepo.Create(ctx, alumni)
 }
 
-func (u *alumniUsecase) GetAllAlumni(ctx context.Context) ([]domain.Alumni, error) {
-	return u.alumniRepo.FindAll(ctx)
+func (u *alumniUsecase) GetAllAlumni(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Alumni], error) {
+	return u.alumniRepo.FindAll(ctx, params)
 }
 
 func (u *alumniUsecase) GetAlumniByID(ctx context.Context, id int) (*domain.Alumni, error) {
@@ -58,5 +57,3 @@ func (u *alumniUsecase) UpdateAlumni(ctx context.Context, id int, req *domain.Up
 func (u *alumniUsecase) DeleteAlumni(ctx context.Context, id int) error {
 	return u.alumniRepo.Delete(ctx, id)
 }
-
-// ... Implementasikan usecase untuk Mahasiswa dan Pekerjaan dengan pola yang sama ...

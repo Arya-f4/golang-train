@@ -15,7 +15,7 @@ type AuthUsecase interface {
 
 type AlumniUsecase interface {
 	CreateAlumni(ctx context.Context, req *domain.CreateAlumniRequest) (*domain.Alumni, error)
-	GetAllAlumni(ctx context.Context) ([]domain.Alumni, error)
+	GetAllAlumni(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Alumni], error)
 	GetAlumniByID(ctx context.Context, id int) (*domain.Alumni, error)
 	UpdateAlumni(ctx context.Context, id int, req *domain.UpdateAlumniRequest) (*domain.Alumni, error)
 	DeleteAlumni(ctx context.Context, id int) error
@@ -31,7 +31,7 @@ type MahasiswaUsecase interface {
 
 type PekerjaanUsecase interface {
 	CreatePekerjaan(ctx context.Context, req *domain.CreatePekerjaanRequest) (*domain.Pekerjaan, error)
-	GetAllPekerjaan(ctx context.Context) ([]domain.Pekerjaan, error)
+	GetAllPekerjaan(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Pekerjaan], error)
 	GetPekerjaanByID(ctx context.Context, id int) (*domain.Pekerjaan, error)
 	UpdatePekerjaan(ctx context.Context, id int, req *domain.UpdatePekerjaanRequest) (*domain.Pekerjaan, error)
 	DeletePekerjaan(ctx context.Context, id int) error

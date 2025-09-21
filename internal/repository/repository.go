@@ -15,7 +15,7 @@ type UserRepository interface {
 
 type AlumniRepository interface {
 	Create(ctx context.Context, alumni *domain.Alumni) (*domain.Alumni, error)
-	FindAll(ctx context.Context) ([]domain.Alumni, error)
+	FindAll(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Alumni], error)
 	FindByID(ctx context.Context, id int) (*domain.Alumni, error)
 	Update(ctx context.Context, alumni *domain.Alumni) (*domain.Alumni, error)
 	Delete(ctx context.Context, id int) error
@@ -31,7 +31,7 @@ type MahasiswaRepository interface {
 
 type PekerjaanRepository interface {
 	Create(ctx context.Context, pekerjaan *domain.Pekerjaan) (*domain.Pekerjaan, error)
-	FindAll(ctx context.Context) ([]domain.Pekerjaan, error)
+	FindAll(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Pekerjaan], error)
 	FindByID(ctx context.Context, id int) (*domain.Pekerjaan, error)
 	Update(ctx context.Context, pekerjaan *domain.Pekerjaan) (*domain.Pekerjaan, error)
 	Delete(ctx context.Context, id int) error

@@ -1,5 +1,4 @@
 // File: internal/delivery/http/handler/alumni_handler.go
-// (Struktur serupa untuk mahasiswa_handler.go dan pekerjaan_handler.go)
 package handler
 
 import (
@@ -32,11 +31,34 @@ func (h *AlumniHandler) CreateAlumni(c *fiber.Ctx) error {
 }
 
 func (h *AlumniHandler) GetAllAlumni(c *fiber.Ctx) error {
-	alumni, err := h.alumniUsecase.GetAllAlumni(c.Context())
+	// Parse query parameters
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	sort := c.Query("sort", "created_at:desc") // contoh: "nama:asc"
+	search := c.Query("search", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 { // Batasi limit untuk mencegah query yang berlebihan
+		limit = 100
+	}
+
+	params := domain.PaginationParams{
+		Page:   page,
+		Limit:  limit,
+		Sort:   sort,
+		Search: search,
+	}
+
+	result, err := h.alumniUsecase.GetAllAlumni(c.Context(), params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(alumni)
+	return c.JSON(result)
 }
 
 func (h *AlumniHandler) GetAlumniByID(c *fiber.Ctx) error {
@@ -81,5 +103,3 @@ func (h *AlumniHandler) DeleteAlumni(c *fiber.Ctx) error {
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
-
-// ... Implementasikan handler untuk Mahasiswa dan Pekerjaan dengan pola yang sama ...

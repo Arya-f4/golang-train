@@ -30,11 +30,34 @@ func (h *PekerjaanHandler) CreatePekerjaan(c *fiber.Ctx) error {
 }
 
 func (h *PekerjaanHandler) GetAllPekerjaan(c *fiber.Ctx) error {
-	pekerjaan, err := h.pekerjaanUsecase.GetAllPekerjaan(c.Context())
+	// Parse query parameters
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	sort := c.Query("sort", "created_at:desc") // contoh: "nama_perusahaan:asc"
+	search := c.Query("search", "")
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 { // Batasi limit untuk mencegah query yang berlebihan
+		limit = 100
+	}
+
+	params := domain.PaginationParams{
+		Page:   page,
+		Limit:  limit,
+		Sort:   sort,
+		Search: search,
+	}
+
+	result, err := h.pekerjaanUsecase.GetAllPekerjaan(c.Context(), params)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(pekerjaan)
+	return c.JSON(result)
 }
 
 func (h *PekerjaanHandler) GetPekerjaanByID(c *fiber.Ctx) error {

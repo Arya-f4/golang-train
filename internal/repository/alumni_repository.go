@@ -1,11 +1,13 @@
 // File: internal/repository/alumni_repository.go
-// (Struktur serupa untuk mahasiswa_repository.go dan pekerjaan_repository.go)
 package repository
 
 import (
 	"back-train/internal/domain"
 	"context"
 	"errors"
+	"fmt"
+	"math"
+	"strings"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -30,15 +32,70 @@ func (r *alumniRepository) Create(ctx context.Context, alumni *domain.Alumni) (*
 	return alumni, nil
 }
 
-func (r *alumniRepository) FindAll(ctx context.Context) ([]domain.Alumni, error) {
-	alumniList := []domain.Alumni{}
-	query := `SELECT id, nim, nama, jurusan, angkatan, tahun_lulus, email, no_telepon, alamat, created_at, updated_at FROM alumni`
-	rows, err := r.db.Query(ctx, query)
+func (r *alumniRepository) FindAll(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Alumni], error) {
+	var args []interface{}
+	var whereClauses []string
+	argID := 1
+
+	baseQuery := `SELECT id, nim, nama, jurusan, angkatan, tahun_lulus, email, no_telepon, alamat, created_at, updated_at FROM alumni`
+	countQuery := `SELECT COUNT(id) FROM alumni`
+
+	if params.Search != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("(nama ILIKE $%d OR nim ILIKE $%d OR jurusan ILIKE $%d OR email ILIKE $%d)", argID, argID, argID, argID))
+		args = append(args, "%"+params.Search+"%")
+		argID++
+	}
+
+	if len(whereClauses) > 0 {
+		whereSQL := " WHERE " + strings.Join(whereClauses, " AND ")
+		baseQuery += whereSQL
+		countQuery += whereSQL
+	}
+
+	// Get total count
+	var total int64
+	err := r.db.QueryRow(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sorting
+	// Whitelist valid sort columns to prevent SQL injection
+	validSortColumns := map[string]string{
+		"nama":        "nama",
+		"nim":         "nim",
+		"angkatan":    "angkatan",
+		"tahun_lulus": "tahun_lulus",
+		"created_at":  "created_at",
+	}
+	sortColumn := "created_at" // default sort
+	sortOrder := "DESC"
+
+	if params.Sort != "" {
+		parts := strings.Split(params.Sort, ":")
+		col := strings.ToLower(parts[0])
+		if mappedCol, ok := validSortColumns[col]; ok {
+			sortColumn = mappedCol
+		}
+		if len(parts) > 1 && strings.ToUpper(parts[1]) == "ASC" {
+			sortOrder = "ASC"
+		}
+	}
+	baseQuery += fmt.Sprintf(" ORDER BY %s %s", sortColumn, sortOrder)
+
+	// Pagination
+	offset := (params.Page - 1) * params.Limit
+	baseQuery += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argID, argID+1)
+	args = append(args, params.Limit, offset)
+
+	// Execute main query
+	rows, err := r.db.Query(ctx, baseQuery, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
+	alumniList := []domain.Alumni{}
 	for rows.Next() {
 		var a domain.Alumni
 		if err := rows.Scan(&a.ID, &a.NIM, &a.Nama, &a.Jurusan, &a.Angkatan, &a.TahunLulus, &a.Email, &a.NoTelepon, &a.Alamat, &a.CreatedAt, &a.UpdatedAt); err != nil {
@@ -46,7 +103,25 @@ func (r *alumniRepository) FindAll(ctx context.Context) ([]domain.Alumni, error)
 		}
 		alumniList = append(alumniList, a)
 	}
-	return alumniList, nil
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	lastPage := int(math.Ceil(float64(total) / float64(params.Limit)))
+	if lastPage < 1 && total > 0 {
+		lastPage = 1
+	}
+
+	result := &domain.PaginationResult[domain.Alumni]{
+		Data:     alumniList,
+		Total:    total,
+		Page:     params.Page,
+		Limit:    params.Limit,
+		LastPage: lastPage,
+	}
+
+	return result, nil
 }
 
 func (r *alumniRepository) FindByID(ctx context.Context, id int) (*domain.Alumni, error) {
@@ -83,5 +158,3 @@ func (r *alumniRepository) Delete(ctx context.Context, id int) error {
 	}
 	return nil
 }
-
-// ... Implementasikan repository untuk Mahasiswa dan Pekerjaan dengan pola yang sama ...
