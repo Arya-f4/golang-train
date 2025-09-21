@@ -1,0 +1,753 @@
+
+openapi: 3.0.0
+info:
+  title: Tracer Study API
+  description: API for managing alumni, mahasiswa, and pekerjaan data with RBAC, pagination, sorting, and searching.
+  version: 1.1.0
+servers:
+  - url: http://localhost:4000/api
+    description: Development server
+
+components:
+  schemas:
+    # --- Pagination Schema ---
+    PaginationMetadata:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+          example: 50
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        last_page:
+          type: integer
+          example: 5
+
+    # --- Authentication Schemas ---
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: "password123"
+      required:
+        - email
+        - password
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@example.com
+        password:
+          type: string
+          example: "password123"
+      required:
+        - email
+        - password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # --- Alumni Schemas ---
+    Alumni:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nim:
+          type: string
+          example: "05111940000001"
+        nama:
+          type: string
+          example: "Budi Santoso"
+        jurusan:
+          type: string
+          example: "Teknik Informatika"
+        angkatan:
+          type: integer
+          example: 2019
+        tahun_lulus:
+          type: integer
+          example: 2023
+        email:
+          type: string
+          format: email
+          example: "budi.santoso@example.com"
+        no_telepon:
+          type: string
+          nullable: true
+          example: "081234567890"
+        alamat:
+          type: string
+          nullable: true
+          example: "Jl. Merdeka No. 1, Jakarta"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AlumniPaginationResult:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMetadata'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Alumni'
+    CreateAlumniRequest:
+      type: object
+      properties:
+        nim:
+          type: string
+          example: "05111940000001"
+        nama:
+          type: string
+          example: "Budi Santoso"
+        jurusan:
+          type: string
+          example: "Teknik Informatika"
+        angkatan:
+          type: integer
+          example: 2019
+        tahun_lulus:
+          type: integer
+          example: 2023
+        email:
+          type: string
+          format: email
+          example: "budi.santoso@example.com"
+        no_telepon:
+          type: string
+          example: "081234567890"
+        alamat:
+          type: string
+          example: "Jl. Merdeka No. 1, Jakarta"
+      required:
+        - nim
+        - nama
+        - jurusan
+        - angkatan
+        - tahun_lulus
+        - email
+    UpdateAlumniRequest:
+      type: object
+      properties:
+        nama:
+          type: string
+          example: "Budi Santoso Updated"
+        jurusan:
+          type: string
+          example: "Sistem Informasi"
+        angkatan:
+          type: integer
+          example: 2019
+        tahun_lulus:
+          type: integer
+          example: 2023
+        email:
+          type: string
+          format: email
+          example: "budi.updated@example.com"
+        no_telepon:
+          type: string
+          example: "081234567891"
+        alamat:
+          type: string
+          example: "Jl. Merdeka No. 11, Jakarta"
+
+    # --- Mahasiswa Schemas ---
+    Mahasiswa:
+      type: object
+      properties:
+        id:
+          type: integer
+        nim:
+          type: string
+        nama:
+          type: string
+        jurusan:
+          type: string
+        angkatan:
+          type: integer
+        email:
+          type: string
+          format: email
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateMahasiswaRequest:
+      type: object
+      properties:
+        nim:
+          type: string
+          example: "05112040000100"
+        nama:
+          type: string
+          example: "Citra Lestari"
+        jurusan:
+          type: string
+          example: "Sistem Informasi"
+        angkatan:
+          type: integer
+          example: 2020
+        email:
+          type: string
+          format: email
+          example: "citra.lestari@email.com"
+      required:
+        - nim
+        - nama
+        - jurusan
+        - angkatan
+        - email
+    UpdateMahasiswaRequest:
+      type: object
+      properties:
+        nama:
+          type: string
+        jurusan:
+          type: string
+        angkatan:
+          type: integer
+        email:
+          type: string
+          format: email
+
+    # --- Pekerjaan Schemas ---
+    Pekerjaan:
+      type: object
+      properties:
+        id:
+          type: integer
+        alumni_id:
+          type: integer
+        nama_perusahaan:
+          type: string
+        posisi_jabatan:
+          type: string
+        bidang_industri:
+          type: string
+        lokasi_kerja:
+          type: string
+        gaji_range:
+          type: string
+          nullable: true
+        tanggal_mulai_kerja:
+          type: string
+          format: date-time
+        tanggal_selesai_kerja:
+          type: string
+          format: date-time
+          nullable: true
+        status_pekerjaan:
+          type: string
+        deskripsi_pekerjaan:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PekerjaanPaginationResult:
+      allOf:
+        - $ref: '#/components/schemas/PaginationMetadata'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Pekerjaan'
+    CreatePekerjaanRequest:
+      type: object
+      properties:
+        alumni_id:
+          type: integer
+          example: 1
+        nama_perusahaan:
+          type: string
+          example: "PT Teknologi Maju"
+        posisi_jabatan:
+          type: string
+          example: "Software Engineer"
+        bidang_industri:
+          type: string
+          example: "Teknologi Informasi"
+        lokasi_kerja:
+          type: string
+          example: "Jakarta"
+        gaji_range:
+          type: string
+          example: "10-15 Juta IDR"
+        tanggal_mulai_kerja:
+          type: string
+          format: date
+          example: "2023-08-01"
+        tanggal_selesai_kerja:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-08-01"
+        status_pekerjaan:
+          type: string
+          example: "Pekerja Tetap"
+        deskripsi_pekerjaan:
+          type: string
+          nullable: true
+          example: "Mengembangkan aplikasi web"
+      required:
+        - alumni_id
+        - nama_perusahaan
+        - posisi_jabatan
+        - bidang_industri
+        - lokasi_kerja
+        - tanggal_mulai_kerja
+        - status_pekerjaan
+    UpdatePekerjaanRequest:
+      type: object
+      properties:
+        nama_perusahaan:
+          type: string
+        posisi_jabatan:
+          type: string
+        bidang_industri:
+          type: string
+        lokasi_kerja:
+          type: string
+        gaji_range:
+          type: string
+        tanggal_mulai_kerja:
+          type: string
+          format: date
+        tanggal_selesai_kerja:
+          type: string
+          format: date
+          nullable: true
+        status_pekerjaan:
+          type: string
+        deskripsi_pekerjaan:
+          type: string
+          nullable: true
+
+    # --- General Response ---
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Not Found"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /alumni:
+    get:
+      tags:
+        - Alumni
+      summary: Get all alumni with pagination, sorting, and search
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "created_at:desc"
+          description: "Sort order. Format: `column:direction`. Valid columns: `nama`, `nim`, `angkatan`, `tahun_lulus`, `created_at`. Direction: `asc` or `desc`."
+          example: "nama:asc"
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: "Search keyword for nama, nim, jurusan, or email."
+      responses:
+        '200':
+          description: A paginated list of alumni
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlumniPaginationResult'
+    post:
+      tags:
+        - Alumni
+      summary: Create a new alumni (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAlumniRequest'
+      responses:
+        '201':
+          description: Alumni created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumni'
+
+  /alumni/{id}:
+    get:
+      tags:
+        - Alumni
+      summary: Get an alumnus by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Alumni data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumni'
+        '404':
+          description: Alumni not found
+    put:
+      tags:
+        - Alumni
+      summary: Update an alumnus (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAlumniRequest'
+      responses:
+        '200':
+          description: Alumni updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alumni'
+    delete:
+      tags:
+        - Alumni
+      summary: Delete an alumnus (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Alumni deleted successfully
+
+  /mahasiswa:
+    get:
+      tags:
+        - Mahasiswa
+      summary: Get all mahasiswa
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: A list of mahasiswa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mahasiswa'
+    post:
+      tags:
+        - Mahasiswa
+      summary: Create a new mahasiswa (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMahasiswaRequest'
+      responses:
+        '201':
+          description: Mahasiswa created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mahasiswa'
+
+  /mahasiswa/{id}:
+    get:
+      tags:
+        - Mahasiswa
+      summary: Get a mahasiswa by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Mahasiswa data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mahasiswa'
+    put:
+      tags:
+        - Mahasiswa
+      summary: Update a mahasiswa (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMahasiswaRequest'
+      responses:
+        '200':
+          description: Mahasiswa updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mahasiswa'
+    delete:
+      tags:
+        - Mahasiswa
+      summary: Delete a mahasiswa (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Mahasiswa deleted successfully
+
+  /pekerjaan:
+    get:
+      tags:
+        - Pekerjaan
+      summary: Get all pekerjaan with pagination, sorting, and search
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of items per page
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "created_at:desc"
+          description: "Sort order. Format: `column:direction`. Valid columns: `nama_perusahaan`, `posisi_jabatan`, `tanggal_mulai_kerja`, `created_at`. Direction: `asc` or `desc`."
+          example: "nama_perusahaan:asc"
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: "Search keyword for nama perusahaan, posisi, industri, or nama alumni."
+      responses:
+        '200':
+          description: A paginated list of pekerjaan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PekerjaanPaginationResult'
+    post:
+      tags:
+        - Pekerjaan
+      summary: Create a new pekerjaan record (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePekerjaanRequest'
+      responses:
+        '201':
+          description: Pekerjaan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pekerjaan'
+
+  /pekerjaan/{id}:
+    get:
+      tags:
+        - Pekerjaan
+      summary: Get a pekerjaan by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Pekerjaan data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pekerjaan'
+    put:
+      tags:
+        - Pekerjaan
+      summary: Update a pekerjaan (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePekerjaanRequest'
+      responses:
+        '200':
+          description: Pekerjaan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pekerjaan'
+    delete:
+      tags:
+        - Pekerjaan
+      summary: Delete a pekerjaan (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Pekerjaan deleted successfully
