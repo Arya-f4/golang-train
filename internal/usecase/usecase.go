@@ -13,6 +13,10 @@ type AuthUsecase interface {
 	Login(ctx context.Context, email, password string) (string, error)
 }
 
+type UsersDeleteUsecase interface {
+	DeleteUsers(ctx context.Context, id int) error
+}
+
 type AlumniUsecase interface {
 	CreateAlumni(ctx context.Context, req *domain.CreateAlumniRequest) (*domain.Alumni, error)
 	GetAllAlumni(ctx context.Context, params domain.PaginationParams) (*domain.PaginationResult[domain.Alumni], error)
@@ -36,3 +40,4 @@ type PekerjaanUsecase interface {
 	UpdatePekerjaan(ctx context.Context, id int, req *domain.UpdatePekerjaanRequest) (*domain.Pekerjaan, error)
 	DeletePekerjaan(ctx context.Context, id int) error
 }
+
